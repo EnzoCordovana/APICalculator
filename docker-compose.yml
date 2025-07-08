@@ -2,7 +2,7 @@ services:
   api:
     build: 
       context: .         # Context à la racine du projet
-      dockerfile: Dockerfile.dev  # Dockerfile dans docker/
+      dockerfile: Dockerfile  # Dockerfile dans docker/
     container_name: calculator-api-dev
     volumes:
       - ./app/:/app/
