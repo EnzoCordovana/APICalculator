@@ -1,35 +1,53 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+use std::sync::Mutex;
 
 struct AppState {
-    app_name: String
+    app_name: String,
+    version: String,
+    visit_count: Mutex<u32> // compteur protégé par Mutex, thread-safe 
 }
 
 #[get("/")]
-async fn index(data: web::Data<AppState>) -> String {
-    let app_name = &data.app_name;
-    format!("Hello {app_name}!")
+async fn index(data: web::Data<AppState>) -> impl Responder {
+    let mut count = data.visit_count.lock().unwrap();
+    *count += 1;
+
+    let message = format!(
+        "Bienvenue sur {} (v{})\nNombre de visites: {}",
+        data.app_name,
+        data.version,
+        count
+    );
+
+    HttpResponse::Ok().body(message)
 }
 
-#[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
-}
+#[get("/status")]
+async fn status(data: web::Data<AppState>) -> impl Responder {
+    let message = format!(
+        "Application: {}\nVersion: {}",
+        data.app_name,
+        data.version
+    );
 
-async fn manual_hello() -> impl Responder {
-    HttpResponse::Ok().body("Hey there!")
+    HttpResponse::Ok().body(message)
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Server API: localhost:8080");
-    HttpServer::new(|| {
+
+    let app_state = web::Data::new(AppState {
+        app_name: "API Calculator".to_string(),
+        version: "1.0.0".to_string(),
+        visit_count: Mutex::new(0)
+    });
+
+    // Lancement du server
+    HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(AppState {
-                app_name: String::from("API Calculator"),
-            }))
+            .app_data(app_state.clone())
             .service(index)
-            .service(echo)
-            .route("/hey", web::get().to(manual_hello))  
+            .service(status)
     })
     .bind(("0.0.0.0", 8080))?
     .run()
