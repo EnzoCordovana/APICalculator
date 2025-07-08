@@ -1,0 +1,11 @@
+services:
+  api:
+    build: 
+      context: .         # Context à la racine du projet
+      dockerfile: Dockerfile.dev  # Dockerfile dans docker/
+    container_name: calculator-api-dev
+    ports:
+      - "8080:8080"
+    environment:
+      - RUST_LOG=debug
+      - PORT=8080
