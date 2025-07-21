@@ -1,7 +1,11 @@
 [package]
-name = "api"
-version = "0.1.0"
+name = "API-Calculator"
+version = "1.0.0"
 edition = "2021"
+description = "Description"
 
 [dependencies]
 actix-web = "4"
+utoipa = "5"
+utoipa-actix-web = "0.1"
+utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
